@@ -90,6 +90,20 @@ $ ssh root@your.ip.address
   <img src="img/terminal.png" alt="Terminal Image"/>
 </p>
 
+### Disclaimer
+- SSH as root is dangerous
+- Create another user in droplet with superuser privileges and ssh as that  
+```
+# Replace 'username' with the desired username for the new account
+sudo adduser username
+
+sudo usermod -aG sudo username
+
+su -i username
+
+echo "{thePublicKeyYouGeneratedPreviously}" > .ssh/authorized_keys
+```
+
 ### Note
 
 > **If you can't connect remotely with some error like Connection Refused, maybe you should use the Digital Ocean Console Launcher for add manually your public ssh key on this  folder: ~/.ssh/authorized_keys**
@@ -127,17 +141,30 @@ GitLab Runner is the open source project that is used to run your jobs and send 
 
 Follow these steps for install `gitlab runner` on your droplet:
 
-Simply download one of the binaries for your system:
+Simply download one of the binaries for your system (replace `latest` with some version if necessary, eg: `v16.9.1`):
 
 ```
 # Linux x86-64
- $ sudo wget -O /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-amd64"
 
- # Linux x86
- $ sudo wget -O /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-386
+# Linux x86
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-386"
 
- # Linux arm
- $ sudo wget -O /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-arm
+# Linux arm
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-arm"
+
+# Linux arm64
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-arm64"
+
+# Linux s390x
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-s390x"
+
+# Linux ppc64le
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-ppc64le"
+
+# Linux x86-64 FIPS Compliant
+sudo curl -L --output /usr/local/bin/gitlab-runner "https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/latest/binaries/gitlab-runner-linux-amd64-fips"
+
 ```
 
 Give it permissions to execute:
@@ -149,9 +176,17 @@ $ sudo chmod +x /usr/local/bin/gitlab-runner
 Install and run as service:
 
 ```
-$ sudo gitlab-runner install
+$ sudo gitlab-runner install --user={yourUserName}
 $ sudo gitlab-runner start
 ```
+
+Verify if it is up:
+
+```
+$ sudo systemctl status gitlab-runner
+```
+![image](https://github.com/valandro/gitlab-ci/assets/59110376/db28e687-c62a-4601-9183-67ff70a28d5a)
+
 
 <div id='runner-register'/>
 
