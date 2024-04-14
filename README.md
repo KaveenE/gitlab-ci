@@ -141,7 +141,7 @@ GitLab Runner is the open source project that is used to run your jobs and send 
 
 Follow these steps for install `gitlab runner` on your droplet:
 
-Simply download one of the binaries for your system (replace `latest` with some version if necessary, eg: `v16.9.1`):
+Simply download one of the binaries for your system (replace `latest` with some version if you need to match with your Gitlab Instance, eg: `v16.9.1`):
 
 ```
 # Linux x86-64
@@ -184,67 +184,63 @@ Verify if it is up:
 
 ```
 $ sudo systemctl status gitlab-runner
+● gitlab-runner.service - GitLab Runner
+     Loaded: loaded (/etc/systemd/system/gitlab-runner.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2024-04-14 01:45:01 UTC; 12s ago
+   Main PID: 41017 (gitlab-runner)
+      Tasks: 6 (limit: 1013)
+     Memory: 12.6M
+        CPU: 164ms
+     CGroup: /system.slice/gitlab-runner.service
+             └─41017 /usr/local/bin/gitlab-runner run --working-directory /home/developer --config /etc/gitlab-runner/config.toml --service gitlab-runner --user developer
 ```
-![image](https://github.com/valandro/gitlab-ci/assets/59110376/db28e687-c62a-4601-9183-67ff70a28d5a)
 
 
 <div id='runner-register'/>
 
 
 #### Register a runner
-Go back on your Gitlab project, on the lateral menu
+Go back on your Gitlab project, on the lateral menu: `Settings > CI/CD > Runners (Expand)`
 
-`Settings > CI/CD > Runners (Expand)`
+![image](https://github.com/KaveenE/gitlab-ci/assets/59110376/9f8a3c74-9be3-4fd8-abf7-95e2bb9c4c6a)
 
-![Gitlab](img/gitlab.png)
+1. Toggle off `Enable Instance Runners for this project`
+2. Register a runner with relevant configuration.
+![image](https://github.com/KaveenE/gitlab-ci/assets/59110376/93830ccc-607b-4913-903c-4259f715ed26)
+3. You will be redirected to a page like the below.
+![image](https://github.com/KaveenE/gitlab-ci/assets/59110376/ad125408-df4b-40e0-a0e5-486307825a6b)
 
-First of all, click on `Disable Shared Runners`
-
-Then go back to your droplet terminal and:
+4. Copy the command from that page and paste into droplet terminal  
+   4.1. Then go back to your droplet terminal and:
 
 ```
-$ sudo gitlab-runner register
+$ sudo gitlab-runner register  --url https://gitlab.com  --token {theTokenYouGotFromTheRedirectedPageAbove}
 ```
 
-Enter your GitLab instance URL:
+5. Enter your GitLab instance URL:
 
 ```
  Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com )
  https://gitlab.com
 ```
-
-Enter the token you obtained to register the Runner:
-
-```
-Please enter the gitlab-ci token for this runner
-xxxxxx
-```
-
-Enter the [tags associated with the Runner](https://docs.gitlab.com/ee/ci/runners/#using-tags), you can change this later in GitLab’s UI:
-
-```
- Please enter the gitlab-ci tags for this runner (comma separated):
- build,test,prod,...
-```
-
-Enter the Runner executor:
+6. Enter the Runner executor:
 
 ```
  Please enter the executor: ssh, docker+machine, docker-ssh+machine, kubernetes, docker, parallels, virtualbox, docker-ssh, shell:
  docker
 ```
 
-If you chose Docker as your executor, you’ll be asked for the default image to be used for projects that do not define one in `.gitlab-ci.yml`:
+7. If you chose Docker as your executor, you’ll be asked for the default image to be used for projects that do not define one in `.gitlab-ci.yml`:
 
 ```
  Please enter the Docker image (eg. ruby:2.1):
  alpine:latest
 ```
-
+#### Confirm runner is up
 And that's it, if you refresh your gitlab runner's page on your repository, you will see:
 
 <p align="center">
-  <img src="img/runners.png" alt="Runners Image"/>
+  <img src="https://github.com/KaveenE/gitlab-ci/assets/59110376/8a917983-fbd4-422f-a5de-3dbe22a2bea2" alt="Runners Image"/>
 </p>
 
 <div id='docker'/>
@@ -279,31 +275,43 @@ ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
 <div id='ci-ssh'/>
 
 #### Enviroment Variables
-Before we create the `.gitlab-ci.yml`, you need to generate a `private ssh key` on your **droplet**. It's simple, it's the same steps that we did before, but now in your droplet.
+1. Before we create the `.gitlab-ci.yml`, you need to generate a `private ssh key` on your **droplet**. It's simple, it's the same steps that we did before, but now in your droplet.
 
 ```
-$ ssh-keygen -o
-Generating public/private rsa key pair.
-Enter file in which to save the key (/home/you/.ssh/id_rsa):
-Created directory '/home/you/.ssh'.
+$  ssh-keygen -t ed25519 -C "DigitalOcean-Server-Pfp-Be-Dev"
+Generating public/private ed25519 key pair.
+Enter file in which to save the key (/root/.ssh/id_ed25519):
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
-Your identification has been saved in /home/you/.ssh/id_rsa.
-Your public key has been saved in /home/you/.ssh/id_rsa.pub.
+Your identification has been saved in /root/.ssh/id_ed25519
+Your public key has been saved in /root/.ssh/id_ed25519.pub
 ```
 
-And get your **private ssh key**: 
+2. Get your **private ssh key**: 
 
 ```
-$ cat ~/.ssh/id_rsa
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAnjPlxuZelQFBCTllfxErc6PNJ+U6f3zt03jf8/ckB3UonRmS ...
------END RSA PRIVATE KEY-----
+$ cat < ~/.ssh/id_ed25519
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABCfvf30Kq
+0gV8WocQrgTrVNAAAAEAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIF5EGh8VtNswD+qS
+N8A7sD5VeP7v5x0LH0J5Bj5Q9wCzAAAAsCnNrHg5kv5kShgHk3Akjg8fI9f0sf6KbzycrV
+Wo7yIG/YcePRxDRsFNzGG0pc86Nn9RsNN/fzeptd3Eh+dV94WGolqAzEnOSy7Y7M7b9p3+
++CDJdEvh2d8BEVPRshNR/gZTPIdqwlSerQEXF7vnYqtNdSwtczLDfDFhbWfrxGsNtFAqvY
+eBtIJghCr+UnzHJjYMsMtj13sccf5ozolr2p+0+j4/Gyq9/sLapS5buBRv
+-----END OPENSSH PRIVATE KEY-----
 ```
 
-Copy, paste and create a variable called **SSH_PRIVATE_KEY** in `Gitlab Enviroment Variables`
+3. Base64 encode it (Necessary for next step as Gitlab)
+```
+cat < ~/.ssh/id_ed25519 | base64 -w0
+LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQ21GbGN6STFOaTFqZEhJQUFBQUdZbU55ZVhCMEFBQUFHQUFBQUJDZnZmMzBLcQowZ1Y4V29jUXJnVHJWTkFBQUFFQUFBQUFFQUFBQXpBQUFBQzNOemFDMWxaREkxTlRFNUFBQUFJRjVFR2g4VnROc3dEK3FTCk44QTdzRDVWZVA3djV4MExIMEo1Qmo1UTl3Q3pBQUFBc0NuTnJIZzVrdjVrU2hnSGszQWtqZzhmSTlmMHNmNktienljclYKV283eUlHL1ljZVBSeERSc0ZOekdHMHBjODZObjlSc05OL2Z6ZXB0ZDNFaCtkVjk0V0dvbHFBekVuT1N5N1k3TTdiOXAzKworQ0RKZEV2aDJkOEJFVlBSc2hOUi9nWlRQSWRxd2xTZXJRRVhGN3ZuWXF0TmRTd3RjekxEZkRGaGJXZnJ4R3NOdEZBcXZZCmVCdElKZ2hDcitVbnpISmpZTXNNdGoxM3NjY2Y1b3pvbHIycCswK2o0L0d5cTkvc0xhcFM1YnVCUnYKLS0tLS1FTkQgT1BFTlNTSCBQUklWQVRFIEtFWS0tLS0tCg==
+```
+4. Go to `Settings > CI/CD > Variables (Expand)`  
+  4.1. Create a variable called **SSH_PRIVATE_KEY** or any name of your choosing with relevant configuration and paste the base64 encoded version  
+  4.2 Gitlab has some constraints on what can be pasted as value. Thus, base64 was needed
 
-![Gitlab SSH](img/gitlab-ssh.png)
+![image](https://github.com/KaveenE/gitlab-ci/assets/59110376/752f552c-5742-43d9-8ac0-588c6902ecfc)
+
 
 That will allow us to send the files and execute commands inside of `.gitlab-ci.yml.`
 
